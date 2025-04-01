@@ -22,4 +22,17 @@ public class ReportController {
         return ResponseEntity.ok(reportService.getBucketWiseReport(bucketId, month, year));
     }
 
+    //______________________ AVERAGE SALES PRICE REPORT ______________________
+    @GetMapping("/average-sales-price")
+    public ResponseEntity<?> getAverageSalesPrice(
+        @RequestParam Long plantId,
+        @RequestParam String month,
+        @RequestParam String year
+    ) {
+        System.out.println("plantId: " + plantId);
+        System.out.println("month: " + month);
+        System.out.println("year: " + year);
+        return ResponseEntity.ok(reportService.getAverageSalesPrice(plantId, month, year));
+    }
+
 }

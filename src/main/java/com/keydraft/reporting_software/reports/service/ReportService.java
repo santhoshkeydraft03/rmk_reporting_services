@@ -12,6 +12,7 @@ import com.keydraft.reporting_software.reports.dto.BucketExpenseTypeDTO;
 import com.keydraft.reporting_software.reports.dto.BucketExpenseGroupDTO;
 import com.keydraft.reporting_software.reports.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
+import com.keydraft.reporting_software.reports.dto.AverageSalesPriceDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -71,5 +72,10 @@ public class ReportService {
         bucketWiseReportDTO.setGrandTotal(grandTotal.toString());
         
         return bucketWiseReportDTO;
+    }
+
+    //______________________ AVERAGE SALES PRICE REPORT ______________________
+    public List<AverageSalesPriceDTO> getAverageSalesPrice(Long plantId, String month, String year) {
+        return reportRepository.getAverageSalesPrice(plantId, month, year);
     }
 }
