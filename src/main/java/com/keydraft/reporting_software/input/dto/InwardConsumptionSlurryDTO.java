@@ -16,6 +16,7 @@ public class InwardConsumptionSlurryDTO {
         this.month = month;
         this.year = year;
     }
+    
 
     // Getters and Setters
     public long getId() {
