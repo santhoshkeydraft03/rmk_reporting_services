@@ -15,6 +15,7 @@ import com.keydraft.reporting_software.input.dto.IncomeDTO;
 import com.keydraft.reporting_software.input.dto.LedgerEntryDTO;
 import com.keydraft.reporting_software.input.dto.SalesDTO;
 import com.keydraft.reporting_software.input.dto.VsiHoursDTO;
+import com.keydraft.reporting_software.input.dto.InwardConsumptionSlurryDTO;
 import com.keydraft.reporting_software.input.service.InputService;
 
 @RestController
@@ -213,6 +214,38 @@ public class InputController {
             @RequestParam("month") String month,
             @RequestParam("year") String year) {
         boolean exists = inputService.checkVsiHoursExists(month, year);
+        return ResponseEntity.ok(exists);
+    }
+
+    // ______________________ INWARD CONSUMPTION SLURRY ______________________
+    @PostMapping("/import-inward-consumption-slurry")
+    public ResponseEntity<String> importInwardConsumptionSlurry(
+            @RequestBody List<Map<String, Object>> inwardConsumptionSlurryData) {
+        try {
+            inputService.importInwardConsumptionSlurryData(inwardConsumptionSlurryData);
+            return ResponseEntity.ok("Inward consumption slurry data imported successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to import inward consumption slurry data: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/inward-consumption-slurry")
+    public ResponseEntity<?> getInwardConsumptionSlurry() {
+        try {
+            List<InwardConsumptionSlurryDTO> inwardConsumptionSlurry = inputService.getAllInwardConsumptionSlurry();
+            return ResponseEntity.ok(inwardConsumptionSlurry);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to retrieve inward consumption slurry data: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/check-inward-consumption-slurry-exists")
+    public ResponseEntity<Boolean> checkInwardConsumptionSlurryExists(
+            @RequestParam("month") String month,
+            @RequestParam("year") String year) {
+        boolean exists = inputService.checkInwardConsumptionSlurryExists(month, year);
         return ResponseEntity.ok(exists);
     }
 }

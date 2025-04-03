@@ -40,6 +40,9 @@ import com.keydraft.reporting_software.master.repository.ProductRepository;
 import com.keydraft.reporting_software.master.model.Plant;
 import com.keydraft.reporting_software.master.repository.PlantRepository;
 import com.keydraft.reporting_software.common.enums.PlantType;
+import com.keydraft.reporting_software.input.dto.InwardConsumptionSlurryDTO;
+import com.keydraft.reporting_software.input.model.InwardConsumptionSlurry;
+import com.keydraft.reporting_software.input.repository.InwardConsumptionSlurryRepository;
 
 @Service
 public class InputService {
@@ -76,6 +79,9 @@ public class InputService {
 
     @Autowired
     private PlantRepository plantRepository;
+
+    @Autowired
+    private InwardConsumptionSlurryRepository inwardConsumptionSlurryRepository;
 
     // ______________________ SALES ______________________
     public void importSalesData(List<Map<String, Object>> salesDataList) {
@@ -422,6 +428,49 @@ public class InputService {
 
     public boolean checkVsiHoursExists(String month, String year) {
         return vsiHoursRepository.existsByMonthAndYear(month, year);
+    }
+
+    // ______________________ INWARD CONSUMPTION SLURRY ______________________
+    public void importInwardConsumptionSlurryData(List<Map<String, Object>> inwardConsumptionSlurryData) {
+        try {
+            // Get all plants with type QUARRY
+            List<Plant> allQuarries = plantRepository.findByPlantType(PlantType.QUARRY);
+            Map<String, Plant> quarryMap = new HashMap<>();
+            for (Plant quarry : allQuarries) {
+                quarryMap.put(quarry.getShortName().toLowerCase().trim(), quarry);
+            }
+
+            List<InwardConsumptionSlurry> slurryList = new ArrayList<>();
+            
+            for (Map<String, Object> row : inwardConsumptionSlurryData) {
+                String quarryName = (String) row.get("quarryName");
+                if (quarryName != null && !quarryName.trim().isEmpty()) {
+                    Plant quarry = quarryMap.get(quarryName.trim().toLowerCase());
+                    if (quarry != null) {
+                        InwardConsumptionSlurry slurry = new InwardConsumptionSlurry();
+                        slurry.setParticulars((String) row.get("materialName"));
+                        slurry.setQuarry(quarry);
+                        slurry.setTonnage(Double.valueOf(row.get("tonnage").toString()));
+                        slurry.setMonth((String) row.get("month"));
+                        slurry.setYear((String) row.get("year"));
+                        
+                        slurryList.add(slurry);
+                    }
+                }
+            }
+            
+            inwardConsumptionSlurryRepository.saveAll(slurryList);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process inward consumption slurry data: " + e.getMessage());
+        }
+    }
+
+    public List<InwardConsumptionSlurryDTO> getAllInwardConsumptionSlurry() {
+        return inwardConsumptionSlurryRepository.getAllInwardConsumptionSlurry();
+    }
+
+    public boolean checkInwardConsumptionSlurryExists(String month, String year) {
+        return inwardConsumptionSlurryRepository.existsByMonthAndYear(month, year);
     }
 
 }
