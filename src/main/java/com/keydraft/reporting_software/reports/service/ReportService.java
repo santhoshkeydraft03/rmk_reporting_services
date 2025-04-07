@@ -13,6 +13,7 @@ import com.keydraft.reporting_software.reports.dto.BucketExpenseGroupDTO;
 import com.keydraft.reporting_software.reports.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import com.keydraft.reporting_software.reports.dto.AverageSalesPriceDTO;
+import com.keydraft.reporting_software.reports.dto.ProductionReportDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -77,5 +78,13 @@ public class ReportService {
     //______________________ AVERAGE SALES PRICE REPORT ______________________
     public List<AverageSalesPriceDTO> getAverageSalesPrice(Long plantId, String month, String year) {
         return reportRepository.getAverageSalesPrice(plantId, month, year);
+    }
+
+    public List<ProductionReportDTO> getProductionReport(Long plantId, String month, String year) {
+        // Calculate previous month for opening stock
+        int monthNum = Integer.parseInt(month);
+        String prevMonth = String.format("%02d", monthNum - 1);
+        
+        return reportRepository.getProductionReport(plantId, month, year, prevMonth, year);
     }
 }

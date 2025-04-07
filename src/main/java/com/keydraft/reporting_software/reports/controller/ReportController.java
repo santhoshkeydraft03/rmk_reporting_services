@@ -35,4 +35,15 @@ public class ReportController {
         return ResponseEntity.ok(reportService.getAverageSalesPrice(plantId, month, year));
     }
 
+    //______________________ PRODUCTION REPORT ______________________
+
+    @GetMapping("/production-report")
+    public ResponseEntity<?> getProductionReport(
+        @RequestParam Long plantId,
+        @RequestParam String month,
+        @RequestParam String year
+    ) {
+        return ResponseEntity.ok(reportService.getProductionReport(plantId, month, year));
+    }
+
 }
