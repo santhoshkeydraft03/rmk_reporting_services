@@ -14,6 +14,9 @@ import com.keydraft.reporting_software.reports.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import com.keydraft.reporting_software.reports.dto.AverageSalesPriceDTO;
 import com.keydraft.reporting_software.reports.dto.ProductionReportDTO;
+import com.keydraft.reporting_software.reports.dto.ProductionReportWrapperDTO;
+import com.keydraft.reporting_software.reports.dto.AverageCostDTO;
+import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -80,11 +83,50 @@ public class ReportService {
         return reportRepository.getAverageSalesPrice(plantId, month, year);
     }
 
-    public List<ProductionReportDTO> getProductionReport(Long plantId, String month, String year) {
+    public ProductionReportWrapperDTO getProductionReport(Long plantId, String month, String year) {
         // Calculate previous month for opening stock
         int monthNum = Integer.parseInt(month);
         String prevMonth = String.format("%02d", monthNum - 1);
         
-        return reportRepository.getProductionReport(plantId, month, year, prevMonth, year);
+        List<ProductionReportDTO> items = reportRepository.getProductionReport(plantId, month, year, prevMonth, year);
+        return new ProductionReportWrapperDTO(items);
+    }
+
+    //______________________ AVERAGE COST REPORT ______________________
+
+    public List<AverageCostDTO> getAverageCost(String month, String year) {
+        // First get production report to get accurate production totals
+        ProductionReportWrapperDTO productionReport = getProductionReport(0L, month, year);
+        
+        // Create a map of quarry to production total
+        Map<String, Double> productionTotals = new HashMap<>();
+        for (ProductionReportDTO item : productionReport.getItems()) {
+            productionTotals.merge(item.getQuarryName(), item.getProduction(), Double::sum);
+        }
+        
+        // Get bucket totals from repository
+        List<Object[]> bucketTotals = reportRepository.getQuarryBucketTotals(month, year);
+        
+        // Combine the data
+        List<AverageCostDTO> results = new ArrayList<>();
+        for (Object[] row : bucketTotals) {
+            String quarryName = (String) row[0];
+            BigDecimal bucketTotal = (BigDecimal) row[1];
+            Double productionTotal = productionTotals.getOrDefault(quarryName, 0.0);
+            
+            // Log the values
+            System.out.println("----------------------------------------");
+            System.out.println("Quarry: " + quarryName);
+            System.out.println("Bucket Total: " + bucketTotal);
+            System.out.println("Production Total: " + productionTotal);
+            
+            results.add(new AverageCostDTO(
+                quarryName, 
+                bucketTotal, 
+                BigDecimal.valueOf(productionTotal)
+            ));
+        }
+        
+        return results;
     }
 }

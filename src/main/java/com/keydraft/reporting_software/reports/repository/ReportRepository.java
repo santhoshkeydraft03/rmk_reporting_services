@@ -8,11 +8,13 @@ import org.springframework.stereotype.Repository;
 
 import com.keydraft.reporting_software.reports.dto.AverageSalesPriceDTO;
 import com.keydraft.reporting_software.reports.dto.ProductionReportDTO;
+import com.keydraft.reporting_software.reports.dto.AverageCostDTO;
 import com.keydraft.reporting_software.reports.model.BucketReport;
 
 @Repository
 public interface ReportRepository extends JpaRepository<BucketReport, Long> {
 
+    // ______________________ BUCKET WISE REPORT ______________________
     @Query(value = """
             SELECT
                 c.bucketName,
@@ -32,6 +34,7 @@ public interface ReportRepository extends JpaRepository<BucketReport, Long> {
     List<Object[]> getBucketWiseReport(@Param("bucketId") String bucketId, @Param("month") String month,
             @Param("year") String year);
 
+    // ______________________ AVERAGE SALES PRICE REPORT ______________________
     @Query("""
                 SELECT NEW com.keydraft.reporting_software.reports.dto.AverageSalesPriceDTO(
                     pl.plantName,
@@ -51,6 +54,7 @@ public interface ReportRepository extends JpaRepository<BucketReport, Long> {
             @Param("month") String month,
             @Param("year") String year);
 
+    // ______________________ PRODUCTION REPORT ______________________
     @Query("""
                 SELECT NEW com.keydraft.reporting_software.reports.dto.ProductionReportDTO(
                     p.productName,
@@ -60,7 +64,7 @@ public interface ReportRepository extends JpaRepository<BucketReport, Long> {
                               WHERE cs_prev.product = p
                               AND cs_prev.quarry = pl
                               AND cs_prev.month = :prevMonth
-                              AND cs_prev.year = :prevYear), 0.0),
+                              AND cs_prev.year = :year), 0.0),
                     COALESCE((SELECT cs_curr.closingStockInTons
                               FROM ClosingStock cs_curr
                               WHERE cs_curr.product = p
@@ -77,6 +81,7 @@ public interface ReportRepository extends JpaRepository<BucketReport, Long> {
                 FROM Product p
                 JOIN p.quarry pl
                 WHERE (:plantId = 0 OR pl.id = :plantId)
+                AND p.productGroup = com.keydraft.reporting_software.common.enums.ProductGroup.PRODUCT
                 GROUP BY p.productName, pl.shortName, p.id, pl.id
             """)
     List<ProductionReportDTO> getProductionReport(
@@ -85,5 +90,60 @@ public interface ReportRepository extends JpaRepository<BucketReport, Long> {
             @Param("year") String year,
             @Param("prevMonth") String prevMonth,
             @Param("prevYear") String prevYear);
+
+    // ______________________ AVERAGE COST REPORT ______________________
+
+    @Query("""
+                SELECT NEW com.keydraft.reporting_software.reports.dto.AverageCostDTO(
+                    pl.shortName,
+                    CAST((SELECT COALESCE(SUM(le.amount), 0.0)
+                          FROM LedgerEntry le
+                          JOIN le.ledger.bucket b
+                          WHERE b.plant = pl
+                          AND b.category = com.keydraft.reporting_software.common.enums.Category.PRODUCTION
+                          AND le.month = :month
+                          AND le.year = :year) AS java.math.BigDecimal),
+                    CAST((SELECT COALESCE(SUM(
+                            COALESCE(s.salesInTons, 0.0) +
+                            COALESCE(cs.closingStockInTons, 0.0) -
+                            COALESCE(cs_prev.closingStockInTons, 0.0)
+                        ), 0.0)
+                        FROM Product p2
+                        JOIN p2.quarry pl2
+                        LEFT JOIN Sales s ON s.product = p2 AND s.quarry = pl2
+                            AND s.month = :month AND s.year = :year
+                        LEFT JOIN ClosingStock cs ON cs.product = p2
+                            AND cs.quarry = pl2
+                            AND cs.month = :month
+                            AND cs.year = :year
+                        LEFT JOIN ClosingStock cs_prev ON cs_prev.product = p2
+                            AND cs_prev.quarry = pl2
+                            AND cs_prev.month = :month
+                            AND cs_prev.year = :year
+                        WHERE pl2 = pl
+                        AND p2.productGroup = com.keydraft.reporting_software.common.enums.ProductGroup.PRODUCT) AS java.math.BigDecimal)
+                )
+                FROM Plant pl
+                WHERE pl.plantType = com.keydraft.reporting_software.common.enums.PlantType.QUARRY
+            """)
+    List<AverageCostDTO> getAverageCost(
+            @Param("month") String month,
+            @Param("year") String year);
+
+    @Query("""
+                SELECT pl.shortName,
+                       CAST(COALESCE(SUM(le.amount), 0.0) AS java.math.BigDecimal)
+                FROM Plant pl
+                LEFT JOIN Bucket b ON b.plant = pl
+                LEFT JOIN LedgerEntry le ON le.ledger.bucket = b
+                    AND le.month = :month
+                    AND le.year = :year
+                WHERE pl.plantType = com.keydraft.reporting_software.common.enums.PlantType.QUARRY
+                AND b.category = com.keydraft.reporting_software.common.enums.Category.PRODUCTION
+                GROUP BY pl.shortName, pl.id
+            """)
+    List<Object[]> getQuarryBucketTotals(
+            @Param("month") String month,
+            @Param("year") String year);
 
 }

@@ -7,8 +7,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.keydraft.reporting_software.reports.dto.BucketWiseReportDTO;
+import com.keydraft.reporting_software.reports.dto.ProductionReportWrapperDTO;
+import com.keydraft.reporting_software.reports.dto.AverageCostDTO;
 import com.keydraft.reporting_software.reports.service.ReportService;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/reports")
@@ -38,12 +42,22 @@ public class ReportController {
     //______________________ PRODUCTION REPORT ______________________
 
     @GetMapping("/production-report")
-    public ResponseEntity<?> getProductionReport(
+    public ResponseEntity<ProductionReportWrapperDTO> getProductionReport(
         @RequestParam Long plantId,
         @RequestParam String month,
         @RequestParam String year
     ) {
         return ResponseEntity.ok(reportService.getProductionReport(plantId, month, year));
+    }
+
+    //______________________ AVERAGE COST REPORT ______________________
+
+    @GetMapping("/average-cost")
+    public ResponseEntity<List<AverageCostDTO>> getAverageCost(
+        @RequestParam String month,
+        @RequestParam String year
+    ) {
+        return ResponseEntity.ok(reportService.getAverageCost(month, year));
     }
 
 }
