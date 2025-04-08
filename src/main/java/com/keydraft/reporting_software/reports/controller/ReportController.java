@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.keydraft.reporting_software.reports.dto.BucketWiseReportDTO;
 import com.keydraft.reporting_software.reports.dto.ProductionReportWrapperDTO;
 import com.keydraft.reporting_software.reports.dto.AverageCostDTO;
+import com.keydraft.reporting_software.reports.dto.MaterialCostDTO;
 import com.keydraft.reporting_software.reports.service.ReportService;
 import lombok.RequiredArgsConstructor;
 
@@ -58,6 +59,15 @@ public class ReportController {
         @RequestParam String year
     ) {
         return ResponseEntity.ok(reportService.getAverageCost(month, year));
+    }
+
+    //______________________ MATERIAL COST REPORT ______________________
+    @GetMapping("/material-cost")
+    public ResponseEntity<List<MaterialCostDTO>> getMaterialCost(
+        @RequestParam String month,
+        @RequestParam String year
+    ) {
+        return ResponseEntity.ok(reportService.getMaterialCost(month, year));
     }
 
 }

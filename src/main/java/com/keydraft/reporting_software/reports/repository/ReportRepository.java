@@ -1,5 +1,6 @@
 package com.keydraft.reporting_software.reports.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.keydraft.reporting_software.reports.dto.AverageSalesPriceDTO;
 import com.keydraft.reporting_software.reports.dto.ProductionReportDTO;
+import com.keydraft.reporting_software.input.dto.VsiHoursDTO;
 import com.keydraft.reporting_software.reports.dto.AverageCostDTO;
 import com.keydraft.reporting_software.reports.model.BucketReport;
 
@@ -26,12 +28,12 @@ public interface ReportRepository extends JpaRepository<BucketReport, Long> {
             LEFT JOIN a.bucket c
             LEFT JOIN a.expenseGroup d
             LEFT JOIN a.expenseType e
-            WHERE c.bucketId = :bucketId
+            WHERE c.bucketName = :bucketName
             AND l.month = :month
             AND l.year = :year
             GROUP BY d.name, e.expenseTypeName, c.bucketName, l.month, l.year
             """)
-    List<Object[]> getBucketWiseReport(@Param("bucketId") String bucketId, @Param("month") String month,
+    List<Object[]> getBucketWiseReport(@Param("bucketName") String bucketName, @Param("month") String month,
             @Param("year") String year);
 
     // ______________________ AVERAGE SALES PRICE REPORT ______________________
@@ -143,6 +145,69 @@ public interface ReportRepository extends JpaRepository<BucketReport, Long> {
                 GROUP BY pl.shortName, pl.id
             """)
     List<Object[]> getQuarryBucketTotals(
+            @Param("month") String month,
+            @Param("year") String year);
+
+    // ______________________ MATERIAL COST REPORT ______________________
+    @Query("""
+            SELECT
+                pl.shortName,
+                CAST(COALESCE(SUM(cs.closingStockInTons), 0.0) AS java.math.BigDecimal)
+            FROM Plant pl
+            JOIN Product p ON p.quarry = pl
+            LEFT JOIN ClosingStock cs ON cs.product = p
+                AND cs.quarry = pl
+                AND cs.month = :month
+                AND cs.year = :year
+            WHERE pl.plantType = 'QUARRY'
+            AND p.productGroup IN ('CHAKKAI', 'FILTER_CHAKKAI')
+            GROUP BY pl.shortName, pl.id
+            """)
+    List<Object[]> getChakkaiOpeningStock(
+            @Param("month") String month,
+            @Param("year") String year);
+
+    @Query("""
+            SELECT
+                pl.shortName,
+                CAST(COALESCE(SUM(le.amount), 0.0) AS java.math.BigDecimal)
+            FROM Plant pl
+            LEFT JOIN Bucket b ON b.plant = pl
+            LEFT JOIN LedgerEntry le ON le.ledger.bucket = b
+                AND le.month = :month
+                AND le.year = :year
+            WHERE pl.plantType = 'QUARRY'
+            AND b.category IN ('PRODUCTION', 'TRANSPORT')
+            GROUP BY pl.shortName, pl.id
+            """)
+    List<Object[]> getProductionTransportBucketTotals(
+            @Param("month") String month,
+            @Param("year") String year);
+
+    @Query("""
+            SELECT
+                CAST(COALESCE(SUM(le.amount), 0.0) AS java.math.BigDecimal)
+            FROM LedgerEntry le
+            JOIN le.ledger l
+            JOIN l.bucket b
+            WHERE b.bucketName = :bucketName
+            AND le.month = :month
+            AND le.year = :year
+            """)
+    BigDecimal getCrusherBucketTotal(
+            @Param("bucketName") String bucketName,
+            @Param("month") String month,
+            @Param("year") String year);
+
+
+            @Query("""
+            SELECT new com.keydraft.reporting_software.input.dto.VsiHoursDTO(v.id, q.shortName, v.vsiHours) 
+            FROM VsiHours v 
+            JOIN v.quarry q
+            WHERE v.month = :month 
+            AND v.year = :year
+            """)
+    List<VsiHoursDTO> getVsiHoursByMonthAndYear(
             @Param("month") String month,
             @Param("year") String year);
 

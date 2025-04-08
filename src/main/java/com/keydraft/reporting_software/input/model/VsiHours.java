@@ -8,7 +8,7 @@ import com.keydraft.reporting_software.master.model.Plant;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "input_vsi_hoursss")
+@Table(name = "input_vsi_hours")
 public class VsiHours extends Base implements Serializable {
     
     @Id

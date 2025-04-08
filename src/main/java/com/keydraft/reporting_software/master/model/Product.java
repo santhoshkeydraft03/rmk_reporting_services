@@ -18,7 +18,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
 
 @Entity
-@Table(name = "products", uniqueConstraints = {
+@Table(name = "master_products", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"productName", "quarry_id"})
 })
 public class Product extends Base implements Serializable {
