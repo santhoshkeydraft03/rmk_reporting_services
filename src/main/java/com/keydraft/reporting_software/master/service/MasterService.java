@@ -53,6 +53,10 @@ public class MasterService {
         return repository.findAll();
     }
 
+    public List<ExpenseType> getExpenseTypesByStatus(Integer status) {
+        return repository.findByStatus(status);
+    }
+
     public ExpenseType getExpenseTypeById(Long id) {
         return repository.findById(id).orElse(null);
     }
@@ -73,6 +77,10 @@ public class MasterService {
     // ExpenseGroup CRUD operations
     public List<ExpenseGroup> getAllExpenseGroups() {
         return expenseGroupRepository.findAll();
+    }
+
+    public List<ExpenseGroup> getExpenseGroupsByFilters(Long expenseTypeId, Integer status) {
+        return expenseGroupRepository.findByFilters(expenseTypeId, status);
     }
 
     public ExpenseGroup getExpenseGroupById(Long id) {
@@ -215,8 +223,12 @@ public class MasterService {
     }
 
     // Ledger CRUD operations
-    public List<Ledger> getAllLedger() {
+    public List<Ledger> getAllLedgers() {
         return ledgerRepository.findAll();
+    }
+
+    public List<Ledger> getLedgersByFilters(Long bucketId, Long expenseTypeId, Integer status) {
+        return ledgerRepository.findByFilters(bucketId, expenseTypeId, status);
     }
 
     public Ledger getLedgerById(Long id) {

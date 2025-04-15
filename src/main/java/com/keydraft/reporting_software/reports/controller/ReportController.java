@@ -22,6 +22,7 @@ public class ReportController {
 
     private final ReportService reportService;
 
+    //______________________ BUCKET WISE REPORT ______________________
     @GetMapping("/bucket-wise-report")
     public ResponseEntity<BucketWiseReportDTO> getBucketWiseReport(@RequestParam String bucketId, @RequestParam String month, @RequestParam String year) {
         return ResponseEntity.ok(reportService.getBucketWiseReport(bucketId, month, year));

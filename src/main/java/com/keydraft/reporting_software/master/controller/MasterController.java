@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.keydraft.reporting_software.master.model.ExpenseType;
@@ -31,7 +32,10 @@ public class MasterController {
 
     // Expense Type
     @GetMapping("/expense-types")
-    public List<ExpenseType> getAllExpenseTypes() {
+    public List<ExpenseType> getAllExpenseTypes(@RequestParam(required = false) Integer status) {
+        if (status != null) {
+            return service.getExpenseTypesByStatus(status);
+        }
         return service.getAllExpenseTypes();
     }
 
@@ -52,7 +56,12 @@ public class MasterController {
 
     // Expense Group
     @GetMapping("/expense-groups")
-    public List<ExpenseGroup> getAllExpenseGroups() {
+    public List<ExpenseGroup> getAllExpenseGroups(
+            @RequestParam(required = false) Long expenseTypeId,
+            @RequestParam(required = false) Integer status) {
+        if (expenseTypeId != null || status != null) {
+            return service.getExpenseGroupsByFilters(expenseTypeId, status);
+        }
         return service.getAllExpenseGroups();
     }
 
@@ -181,10 +190,16 @@ public class MasterController {
         service.deleteBucket(id);
     }
 
-    // Ledger CRUD endpoints
+    // Ledger
     @GetMapping("/ledger")
-    public List<Ledger> getAllLedger() {
-        return service.getAllLedger();
+    public List<Ledger> getAllLedgers(
+            @RequestParam(required = false) Long bucketId,
+            @RequestParam(required = false) Long expenseTypeId,
+            @RequestParam(required = false) Integer status) {
+        if (bucketId != null || expenseTypeId != null || status != null) {
+            return service.getLedgersByFilters(bucketId, expenseTypeId, status);
+        }
+        return service.getAllLedgers();
     }
     
     @GetMapping("/ledger/{id}")

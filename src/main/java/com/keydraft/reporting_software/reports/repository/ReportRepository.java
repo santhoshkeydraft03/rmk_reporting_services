@@ -28,12 +28,12 @@ public interface ReportRepository extends JpaRepository<BucketReport, Long> {
             LEFT JOIN a.bucket c
             LEFT JOIN a.expenseGroup d
             LEFT JOIN a.expenseType e
-            WHERE c.bucketName = :bucketName
+            WHERE c.bucketId = :bucketId
             AND l.month = :month
             AND l.year = :year
             GROUP BY d.name, e.expenseTypeName, c.bucketName, l.month, l.year
             """)
-    List<Object[]> getBucketWiseReport(@Param("bucketName") String bucketName, @Param("month") String month,
+    List<Object[]> getBucketWiseReport(@Param("bucketId") String bucketId, @Param("month") String month,
             @Param("year") String year);
 
     // ______________________ AVERAGE SALES PRICE REPORT ______________________

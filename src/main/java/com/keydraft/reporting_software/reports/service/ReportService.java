@@ -27,9 +27,11 @@ public class ReportService {
 
     private final ReportRepository reportRepository;
 
+    //______________________ BUCKET WISE REPORT ______________________
     public BucketWiseReportDTO getBucketWiseReport(String bucketId, String month, String year) {
 
         List<Object[]> bucketWiseReport = reportRepository.getBucketWiseReport(bucketId, month, year);
+        System.out.println("bucketWiseReport: " + bucketWiseReport);
         BucketWiseReportDTO bucketWiseReportDTO = new BucketWiseReportDTO();
 
         if (bucketWiseReport.isEmpty()) {

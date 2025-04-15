@@ -15,7 +15,7 @@ public class ExpenseGroup  extends Base implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long expenseGroupId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @ManyToOne(fetch = FetchType.EAGER)
